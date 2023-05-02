@@ -1,6 +1,8 @@
 package com.rrlira96.origininsurancebackend.controller.exceptions;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -17,6 +19,8 @@ import java.util.List;
 @ControllerAdvice
 public class RestExceptionHandler {
 
+    private static Logger logger = LoggerFactory.getLogger(RestExceptionHandler.class);
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> methodArgumentNotValidHandler(MethodArgumentNotValidException ex, HttpServletRequest request) {
         String title = "Validation failed";
@@ -30,6 +34,7 @@ public class RestExceptionHandler {
             String detail = String.format("Field %s %s", field, errorMessage);
             StandardError errorObject = new StandardError(Instant.now(), status.value(), title, detail, request.getRequestURI());
             errorResponse.getErrors().add(errorObject);
+            logger.error("Field validation error. {}.", error);
         }
 
         return ResponseEntity.status(status).body(errorResponse);
@@ -44,6 +49,8 @@ public class RestExceptionHandler {
         ErrorResponse errorResponse = new ErrorResponse(new ArrayList<>());
         StandardError errorObject = new StandardError(Instant.now(), status.value(), title, message, request.getRequestURI());
         errorResponse.getErrors().add(errorObject);
+
+        logger.error("Field validation error. {}.", ex.getMessage());
 
         return ResponseEntity.status(status).body(errorResponse);
     }
